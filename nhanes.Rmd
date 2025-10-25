@@ -1,0 +1,39 @@
+---
+title: "STA302 Report"
+output: html_notebook
+---
+# Group 173: Oscar Heath, Evelyn Hughes, Amy Ye
+
+```{r}
+library(NHANES)
+data(NHANES)
+# select columns we want from NHANES
+data <- subset(as.data.frame(NHANES), 
+              select = c(BPSysAve, Gender, Age, BMI, 
+                         HHIncomeMid, Poverty, Weight, Pulse, TotChol, PhysActiveDays, Race1, PhysActive,TVHrsDay))
+data = na.omit(data)
+plot(data)
+```
+
+```{r}
+# Fit a model with our predictors, as well as some interesting interaction terms
+model = lm(BPSysAve ~. + Gender:Age + Gender:BMI + Age:TotChol, data=data)
+summary(model)
+```
+
+```{r, echo=F, fig.width=8, fig.height=11}
+# Get residuals and fitted values
+e_hat <- resid(model)
+y_hat <- fitted(model)
+
+# Plot residuals
+par(mfrow=c(4,3))
+plot(data$BPSysAve ~ y_hat, ylab="transformed expectancy", xlab="Fitted")
+plot(e_hat ~ y_hat, ylab="Residuals", xlab="Fitted")
+for(i in c(2,3,4,5,6,7,8,9,10,11,12)){
+  plot(e_hat ~ data[,i], ylab="Residuals", xlab=names(data)[i])
+}
+plot(e_hat, ylab="Residuals", xlab="Observation number")
+qqnorm(e_hat)
+qqline(e_hat)
+```
