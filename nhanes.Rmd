@@ -1,8 +1,13 @@
 ---
 title: "STA302 Report"
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
 ---
+
 # Group 173: Oscar Heath, Evelyn Hughes, Amy Ye
+
+### Importing Data from NHANES package
 
 ```{r}
 library(NHANES)
@@ -12,14 +17,128 @@ data <- subset(as.data.frame(NHANES),
               select = c(BPSysAve, Gender, Age, BMI, 
                          HHIncomeMid, Poverty, Weight, Pulse, TotChol, PhysActiveDays, Race1, PhysActive,TVHrsDay))
 data = na.omit(data)
+```
+
+### Plot the data to see distributions:
+
+```{r, echo=F, fig.width=8, fig.height=11}
+num_cols <- ncol(data)
+par(mfrow = c(ceiling(num_cols / 4), 4)) 
+
+# loop through each column and plot the distribution
+for (col_name in names(data)) {
+  data_col <- data[[col_name]]
+  
+  # if the variable is numeric, then we will make a histogram
+  if (is.numeric(data_col)) {
+      hist(data_col, 
+         main = paste("Histogram of", col_name), 
+         xlab = col_name,
+         col = "lightblue",
+         border = "black")
+         
+  } else {
+  # if categorical, make a barplot
+  barplot(table(data_col), 
+          main = paste("Bar Plot of", col_name), 
+          xlab = col_name,
+          ylab = "Count",
+          col = "lightgreen",
+          las = 2)
+  }
+}
+par(mfrow = c(1, 1))
+```
+
+### Checking correlation between predictors:
+
+```{r}
 plot(data)
 ```
+
+### Summary of BPSysAve, our response variable
+
+```{r}
+summary(data$BPSysAve)
+```
+
+### Graphing interaction terms:
+
+```{r}
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1)
+
+# Make a scatterplot of blood pressure and age, coloured by gender
+plot(data$Age, data$BPSysAve, 
+     main = "Interaction of Age and Gender on Blood Pressure",
+     xlab = "Age",
+     ylab = "Systolic Blood Pressure",
+     pch = 19,
+     col = ifelse(data$Gender == "male", "blue", "red"))
+# Add female line of best fit
+female_fit <- lm(BPSysAve ~ Age, data = subset(data, Gender == "female"))
+abline(female_fit, col = "red", lwd = 2)
+# Add male line of best fit
+male_fit <- lm(BPSysAve ~ Age, data = subset(data, Gender == "male"))
+abline(male_fit, col = "blue", lwd = 2)
+
+legend("topleft", 
+       legend = c("Female", "Male"), 
+       col = c("red", "blue"), 
+       pch = 19, lwd = 2, bty = "n")
+
+# Make a scatterplot of blood pressure and BMI
+plot(data$BMI, data$BPSysAve, 
+     main = "Interaction of BMI and Gender on Blood Pressure",
+     xlab = "BMI",
+     ylab = "Systolic Blood Pressure",
+     pch = 19, 
+     col = ifelse(data$Gender == "male", "blue", "red")) 
+# Add female line of best fit
+female_fit_bmi <- lm(BPSysAve ~ BMI, data = subset(data, Gender == "female"))
+abline(female_fit_bmi, col = "red", lwd = 2)
+# Add male line of best fit
+male_fit_bmi <- lm(BPSysAve ~ BMI, data = subset(data, Gender == "male"))
+abline(male_fit_bmi, col = "blue", lwd = 2)
+
+legend("topleft", 
+       legend = c("Female", "Male"), 
+       col = c("red", "blue"), 
+       pch = 19, lwd = 2, bty = "n")
+
+# Split TotChol into a high and low category using the median, we will use this to visualize different slopes
+median_chol <- median(data$TotChol)
+
+# Make a scatterplot of blood pressure and cholestrol
+plot(data$Age, data$BPSysAve, 
+     main = "Interaction of Age and Total Cholesterol on Blood Pressure",
+     xlab = "Age",
+     ylab = "Systolic Blood Pressure",
+     pch = 19, 
+     col = ifelse(data$TotChol < median_chol, "red", "blue")) #colour based on group
+# Add low cholestrol line of best fit
+low_chol_fit <- lm(BPSysAve ~ Age, data = subset(data, TotChol < median_chol))
+abline(low_chol_fit, col = "red", lwd = 2)
+# Add high cholestrol line of best fit
+high_chol_fit <- lm(BPSysAve ~ Age, data = subset(data, TotChol >= median_chol))
+abline(high_chol_fit, col = "blue", lwd = 2)
+
+legend("topleft", 
+       legend = c("Low Cholesterol", "High Cholesterol"), 
+       col = c("red", "blue"), 
+       pch = 19, lwd = 2, bty = "n")
+
+par(mfrow = c(1, 1))
+```
+
+### Fitting our preliminary model
 
 ```{r}
 # Fit a model with our predictors, as well as some interesting interaction terms
 model = lm(BPSysAve ~. + Gender:Age + Gender:BMI + Age:TotChol, data=data)
 summary(model)
 ```
+
+### Residual Plots:
 
 ```{r, echo=F, fig.width=8, fig.height=11}
 # Get residuals and fitted values
@@ -28,7 +147,7 @@ y_hat <- fitted(model)
 
 # Plot residuals
 par(mfrow=c(4,3))
-plot(data$BPSysAve ~ y_hat, ylab="transformed expectancy", xlab="Fitted")
+plot(data$BPSysAve ~ y_hat, ylab="True Systolic Blood Pressure", xlab="Fitted")
 plot(e_hat ~ y_hat, ylab="Residuals", xlab="Fitted")
 for(i in c(2,3,4,5,6,7,8,9,10,11,12)){
   plot(e_hat ~ data[,i], ylab="Residuals", xlab=names(data)[i])
