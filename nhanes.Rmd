@@ -11,16 +11,21 @@ output:
 
 ```{r}
 library(NHANES)
+library(MASS)
+library(car)
 data(NHANES)
 # select columns we want from NHANES
 data <- subset(as.data.frame(NHANES), 
               select = c(BPSysAve, Gender, Age, BMI, 
                          HHIncomeMid, Poverty, Weight, Pulse, TotChol, PhysActiveDays, Race1, PhysActive,TVHrsDay))
 data = na.omit(data)
+set.seed(42)
+s <- sample(1:nrow(data), 1000, replace=F)
+train <- data[s, ]
+test <- data[-s, ]
 ```
 
 ### Plot the data to see distributions:
-
 ```{r, echo=F, fig.width=8, fig.height=11}
 num_cols <- ncol(data)
 par(mfrow = c(ceiling(num_cols / 4), 4)) 
@@ -155,4 +160,14 @@ for(i in c(2,3,4,5,6,7,8,9,10,11,12)){
 plot(e_hat, ylab="Residuals", xlab="Observation number")
 qqnorm(e_hat)
 qqline(e_hat)
+```
+```{r}
+model1 = lm(BPSysAve ~. + Gender:Age + Gender:BMI + Age:TotChol, data=train)
+model2 = lm(BPSysAve ~. + Gender:Age + Gender:BMI + Age:TotChol, data=test)
+summary(model1)
+summary(model2)
+```
+```{r}
+vif(model1)
+vif(model2)
 ```
