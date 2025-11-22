@@ -167,7 +167,8 @@ model2 = lm(BPSysAve ~. + Gender:Age + Gender:BMI + Age:TotChol, data=test)
 summary(model1)
 summary(model2)
 ```
+
 ```{r}
-vif(model1)
-vif(model2)
+vif(model1, type = 'predictor')
+vif(model2, type = 'predictor')
 ```
