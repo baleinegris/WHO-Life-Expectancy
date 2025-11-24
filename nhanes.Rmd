@@ -12,7 +12,7 @@ output:
 ```{r}
 library(NHANES)
 library(MASS)
-library(car)
+# library(car)
 data(NHANES)
 # select columns we want from NHANES
 data <- subset(as.data.frame(NHANES), 
@@ -161,6 +161,7 @@ plot(e_hat, ylab="Residuals", xlab="Observation number")
 qqnorm(e_hat)
 qqline(e_hat)
 ```
+
 ```{r}
 model1 = lm(BPSysAve ~. + Gender:Age + Gender:BMI + Age:TotChol, data=train)
 model2 = lm(BPSysAve ~. + Gender:Age + Gender:BMI + Age:TotChol, data=test)
@@ -171,4 +172,14 @@ summary(model2)
 ```{r}
 vif(model1, type = 'predictor')
 vif(model2, type = 'predictor')
+```
+
+```{r}
+full_model = lm(BPSysAve ~ Gender + Age + BMI + HHIncomeMid + Poverty + Weight + Pulse + TotChol + PhysActiveDays + Race1 + PhysActive + TVHrsDay + Gender:Age + Gender:BMI + Age:TotChol, data=data)
+reduced_model = lm(BPSysAve ~ Gender + Age + BMI + Poverty + Weight + Pulse + TotChol + PhysActiveDays + Race1 + PhysActive + TVHrsDay + Gender:Age + Gender:BMI + Age:TotChol, data=data)
+anova(reduced_model, full_model)
+```
+```{r}
+summary(reduced_model)
+summary(full_model)
 ```
