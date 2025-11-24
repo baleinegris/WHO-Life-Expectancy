@@ -168,7 +168,7 @@ vif(model, type="predictor")
 ```
 ### VIF seems high for some variables: performing a Partial F Test to see if we can drop Weight and HHIncomeMid
 ```{r}
-model = lm(BPSysAve ~ Gender + Age + BMI + HHIncomeMid + Poverty + Weight + Pulse + TotChol + PhysActiveDays + Race1 + PhysActive + TVHrsDay + Gender:Age + Gender:BMI + Age:TotChol, data=data)
+full_model = model
 reduced_model = lm(BPSysAve ~ Gender + Age + BMI + Poverty + Pulse + TotChol + PhysActiveDays + Race1 + PhysActive + TVHrsDay + Gender:Age + Gender:BMI + Age:TotChol, data=data)
 anova(reduced_model, full_model)
 vif(reduced_model, type="predictor")
